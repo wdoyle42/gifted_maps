@@ -1,0 +1,271 @@
+---
+title: "Giftedness Maps"
+author: "Will Doyle"
+date: "11/29/2018"
+output: html_document
+---
+
+## Required Libraries
+```{r}
+library(plotly)
+library(readxl)
+library(usmap)
+library(leaflet)
+library(sp)
+library(sf)
+library(tigris)
+library(albersusa)
+library(htmlwidgets)
+library(scales)
+library(RColorBrewer)
+library(tidyverse)
+```
+
+## Directory structure
+```{r}
+
+ddir<-"../data/"
+outdir<-"../output/"
+
+```
+
+## Functions
+
+
+
+## Barplot of Variable
+
+```{r}
+
+gg_state_plot<-function(df,var,groupvar){
+
+df$groupvar<-unlist(df[groupvar])
+df$v<-unlist(df[var])
+
+top.percent<-1
+bottom.percent<-0
+
+#Number of levels to cut by
+n.levels<-10
+
+## Cuts 
+## Using max makes bad ranges, use top percentile (set above as constant) instead. 
+
+mymax<-quantile(unlist(df[var])                
+               ,top.percent,na.rm=TRUE)
+
+mymin<-quantile(unlist(df[var])                
+               ,bottom.percent,na.rm=TRUE)
+
+mylevels<-cbreaks(range=c(mymin,mymax),
+                pretty_breaks(n.levels,high.u.bias=5),
+                labels=comma_format())
+
+##Change those labels into ranges
+i<-2:length(mylevels$labels)
+
+mynicelevels<-NULL
+
+mynicelevels[i-1]<-paste0(mylevels$labels[i-1],"-",mylevels$labels[i])
+
+##Take all the "v" data and create nice groups for it.
+
+##Apply ranges as defined above and add to the existing data
+df$vcut<-findInterval(unlist(df[var]),vec=mylevels$breaks)
+
+df$vcut<-factor(df$vcut,
+                     levels=(i-1),
+                     labels=mynicelevels,
+                        ordered=TRUE)
+
+## Create palette, might want to match with plot above    
+pal<- (brewer.pal(length(mylevels$breaks), 'RdYlGn'))
+
+fpal <- colorFactor(pal = pal,
+                    domain = df$vcut,
+                    ordered = TRUE)
+myval<-fpal(df$vcut)
+
+df$state_var<-paste0(df$state,":",round(df$v,1))
+
+gg<-ggplot(df,aes(
+       x=fct_reorder(.f=as_factor(groupvar),
+                     .x=v),
+       y=v,
+       fill=vcut,
+       label=state_var
+       ))
+gg<-gg+geom_bar(stat="identity")
+gg<-gg+scale_fill_manual(values =pal)
+gg<-gg+coord_flip()
+gg<-gg+xlab("")+ylab(var)
+gg<-gg+theme(legend.position="none")
+
+out_plot<-ggplotly(tooltip=c("label"))
+
+saveWidget(out_plot,file=paste0(outdir,var,"_plot.html"))
+}
+```
+
+
+
+
+## Mapping Function
+```{r}
+map_gen<-function(v,geo_df){
+# This is a function to generate a map linked to plots  of data, it takes one argument "v" which specifies the variable to use
+
+geo_df$v<-unlist(geo_df[v])
+## Top percent used to set range
+
+top.percent<-1
+bottom.percent<-0
+
+#Number of levels to cut by
+n.levels<-10
+
+## Cuts 
+## Using max makes bad ranges, use top percentile (set above as constant) instead. 
+
+mymax<-quantile(unlist(geo_df[v])                
+               ,top.percent,na.rm=TRUE)
+
+mymin<-quantile(unlist(geo_df[v])                
+               ,bottom.percent,na.rm=TRUE)
+
+mylevels<-cbreaks(range=c(mymin,mymax),
+                pretty_breaks(n.levels,high.u.bias=5),
+                labels=comma_format())
+
+
+##Change those labels into ranges
+i<-2:length(mylevels$labels)
+
+mynicelevels<-NULL
+
+mynicelevels[i-1]<-paste0(mylevels$labels[i-1],"-",mylevels$labels[i])
+
+##Take all the "v" data and create nice groups for it.
+
+##Apply ranges as defined above and add to the existing data
+geo_df$vcut<-findInterval(unlist(geo_df[v]),vec=mylevels$breaks)
+
+geo_df$vcut<-factor(geo_df$vcut,
+                     levels=(i-1),
+                     labels=mynicelevels,
+                        ordered=TRUE)
+
+
+## Create palette, might want to match with plot above    
+pal<- (brewer.pal(length(mylevels$breaks), 'RdYlGn'))
+
+fpal <- colorFactor(pal = pal,
+                    domain = geo_df$vcut,
+                    ordered = TRUE)
+
+
+## Create a label for each state that links to
+## external plots
+state_pop<-paste0(
+  geo_df$name,"</a><b>",
+  '<br/> ',
+  v,
+  ": ",
+  prettyNum((geo_df$v),digits=1),
+  '<br/> ',
+  "Click below for full data:",
+  '<br/> ',
+  "<b><a href='./",
+  v,
+  "_plot.html'> Plot for all states </a ><b>"
+)
+
+## Set line weights
+myweight=1
+myopacity=.5
+
+## Set projection
+epsg2163 <- leafletCRS(
+  crsClass = "L.Proj.CRS",
+  code = "EPSG:2163",
+  proj4def = "+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs",
+  resolutions = 2^(16:7))
+
+## Create leaflet map
+out_map<-leaflet(data = geo_df,
+                 options = leafletOptions(crs = epsg2163)) %>% 
+  addTiles() %>%
+  addPolygons(
+              color = 'black',
+              weight = myweight,
+              opacity=myopacity,
+              fillColor = fpal(geo_df$vcut),
+              fillOpacity = 0.75,
+              popup=state_pop)%>%
+                addLegend('bottomright',
+                          title=v,
+                          pal = fpal,
+                          values = geo_df$vcut
+                          )%>%
+  setView(lng = -98.35, lat = 39.50, zoom = 4)
+
+
+saveWidget(out_map,
+           file=paste0(outdir,v,"_map.html"))
+
+} # End function
+```
+
+
+## Read in Data, transform to 0-100
+```{r}
+gm<-read_xlsx(paste0(ddir,
+                     "gifted_data.xlsx")
+              )
+
+gm%>%slice(-c(1:2,54:59))->gm
+
+names(gm)<-names(gm)%>%
+  str_replace_all(c(" "="_",
+                    "-"="_",
+                    ","=""
+                    ))%>%
+  tolower()
+
+pct_vars<-names(gm)[c(5,7,8,9,11:37)]
+
+mult_100<-function(x){x*100}
+
+gm%>%mutate_at(.vars=pct_vars,.funs=mult_100)->gm
+
+gm$stabbr<-gm$state
+```
+
+
+
+## Alt shapefile
+```{r}
+spdf <- usa_sf()
+spdf<-st_sf(spdf)
+```
+
+## Join data and shapefile
+```{r}
+gm_states<-left_join(spdf,gm,by="stabbr")
+#gm_states<-left_join(gm,spdf,by="stabbr")
+names(gm_states)[19:56]<-names(gm)[5:42]
+```
+
+
+
+## Draw Maps and Barplots  
+```{r}
+list_of_vars<-names(gm)[c(5,7,8,9,11)]#:37)]
+
+list_of_vars<-"access"
+for (myvar in list_of_vars){
+  map_gen(myvar,gm_states)
+  gg_state_plot(gm,myvar,"state")
+}
+```
+  
