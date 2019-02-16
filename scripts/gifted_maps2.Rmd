@@ -23,10 +23,8 @@ library(tidyverse)
 
 ## Directory structure
 ```{r}
-
 ddir<-"../data/"
 outdir<-"../output/"
-
 ```
 
 ## Functions
@@ -105,8 +103,6 @@ out_plot<-ggplotly(gg,tooltip="label")
 saveWidget(out_plot,file=paste0(outdir,var,"_plot.html"))
 }
 ```
-
-
 
 
 ## Mapping Function
@@ -238,6 +234,8 @@ mult_100<-function(x){x*100}
 
 gm%>%mutate_at(.vars=pct_vars,.funs=mult_100)->gm
 
+gm$equity_between_non_title_1_and_title_1_schools[gm$state=="VT"]<-NA
+
 gm$stabbr<-gm$state
 ```
 
@@ -259,8 +257,8 @@ gm_states<-left_join(spdf,gm,by="stabbr")
 
 ## Draw Maps and Barplots  
 ```{r}
-list_of_vars<-names(gm)[c(5,7,8,9,11)]#:37)]
-plot_labels<-labels[c(5,7,8,9,11)]
+list_of_vars<-names(gm)[c(5,7:10)]#:37)]
+plot_labels<-labels[c(5,7:10)]
 
 for (i in 1:length(list_of_vars)){
   try(map_gen(v=list_of_vars[i], 
