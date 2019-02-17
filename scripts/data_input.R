@@ -34,7 +34,11 @@ gm$equity_between_non_title_1_and_title_1_schools[gm$state=="VT"]<-NA
 
 gm$stabbr<-gm$state
 
-save(gm,file="../data/gm.Rdata")
+gm$national_rank_in_access<-as.numeric(as.character(gm$national_rank_in_access))
+
+names(gm)[5:37]<-labels[5:37]
+
+save(gm,file="gm.Rdata")
 
 spdf <- usa_sf()
 spdf$stabbr<-spdf$iso_3166_2
@@ -42,6 +46,8 @@ spdf$stabbr<-spdf$iso_3166_2
 ## Join data and shapefile
 
 gm_states<-left_join(spdf,gm,by="stabbr")
+
+save(gm_states,file="gm_states.Rdata")
 
 #gm_states<-left_join(gm,spdf,by="stabbr")
 #names(gm_states)[19:56]<-names(gm)[5:42]

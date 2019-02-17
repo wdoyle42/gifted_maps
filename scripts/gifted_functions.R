@@ -69,10 +69,10 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   gg<-gg+scale_fill_manual(values =pal)
   gg<-gg+coord_flip()
   gg<-gg+xlab("")+ylab(axis_label)
+  gg<-gg+theme(axis.text.y=element_text(size=8,angle=15))
   gg<-gg+theme(legend.position="none")
-  gg
-  #out_plot<-ggplotly(gg,tooltip="label")
-  
+  outplot<-ggplotly(gg,tooltip="label")
+  outplot
 }
 
 
@@ -141,14 +141,8 @@ map_gen<-function(v,geo_df,legend_label){
     '<br/> ',
     v,
     ": ",
-    prettyNum((geo_df$v),digits=1),
-    '<br/> ',
-    "Click below for full data:",
-    '<br/> ',
-    "<b><a href='./",
-    v,
-    "_plot.html'> Plot for all states </a ><b>"
-  )
+    prettyNum((geo_df$v),digits=1)
+    )
   
   ## Set line weights
   myweight=1
@@ -178,8 +172,6 @@ map_gen<-function(v,geo_df,legend_label){
     )%>%
     setView(lng = -98.35, lat = 39.50, zoom = 3)
   
-  
-  saveWidget(out_map,
-             file=paste0(outdir,v,"_map.html"))
+
   
 } # End function
