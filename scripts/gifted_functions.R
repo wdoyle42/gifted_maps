@@ -69,7 +69,8 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   gg<-gg+scale_fill_manual(values =pal)
   gg<-gg+coord_flip()
   gg<-gg+xlab("")+ylab(axis_label)
-  gg<-gg+theme(axis.text.y=element_text(size=8,angle=15))
+  gg<-gg+theme_minimal()
+  gg<-gg+theme(axis.text.y=element_text(size=7,angle=15))
   gg<-gg+theme(legend.position="none")
   outplot<-ggplotly(gg,tooltip="label")
   outplot
