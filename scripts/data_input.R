@@ -4,10 +4,23 @@
 # <AU> Doyle
 # Load in gifted and mapping data, write to Rdata for easy access from app
 ################################################################################
-
+library(ggplot2)
+library(shiny)
+library(plotly)
+library(readxl)
+library(usmap)
+library(leaflet)
+library(sp)
+library(sf)
+library(tigris)
+library(albersusa)
+library(htmlwidgets)
+library(scales)
+library(RColorBrewer)
+library(tidyverse)
 library(tidyverse)
 library(readxl)
-
+library(albersusa)
 ddir<-"../data/"
 
 gm<-read_xlsx(paste0(ddir,"gifted_data.xlsx"))
@@ -23,7 +36,7 @@ names(gm)<-names(gm)%>%
   ))%>%
   tolower()
 
-pct_vars<-names(gm)[c(5,7,9,10,11:37)]
+pct_vars<-names(gm)[c(6,8,10,11,12:38)]
 
 mult_100<-function(x){x*100}
 
