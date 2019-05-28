@@ -1,0 +1,12 @@
+name: gifted_maps
+title: gifted_maps
+username:
+account: wdoyle42
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 722018
+bundleId: 2114458
+url: https://wdoyle42.shinyapps.io/gifted_maps/
+when: 1559078049.18826
+asMultiple: FALSE
+asStatic: FALSE
