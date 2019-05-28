@@ -5,11 +5,21 @@
 # Load in gifted and mapping data, write to Rdata for easy access from app
 ################################################################################
 
+library(shiny)
+library(plotly)
+library(readxl)
+library(usmap)
+library(leaflet)
+library(sp)
+library(sf)
+library(tigris)
+library(albersusa)
+library(htmlwidgets)
+library(scales)
+library(RColorBrewer)
 library(tidyverse)
 library(readxl)
-library(sf)
-library(albersusa)
-library(scales)
+
 
 ddir<-"../data/"
 
@@ -21,6 +31,7 @@ save(gm_cb,file="gm_codebook.Rdata")
 
 ## Read in data file
 gm<-read_xlsx(paste0(ddir,"gifted_data_2.xlsx"))
+
 
 ##Select only relevant rows and columns
 gm%>%slice(-c(1,53:dim(gm)[1]))%>%select(-c(2:5,39:dim(gm)[2]))->gm
