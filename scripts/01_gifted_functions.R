@@ -13,9 +13,6 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   
   df$v<-unlist(df[var])
   
-  top.percent<-1
-  bottom.percent<-0
-  
   #Number of levels to cut by
   n.levels<-10
   
@@ -29,7 +26,7 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
                   ,bottom.percent,na.rm=TRUE)
   
   mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels,high.u.bias=5),
+                    pretty_breaks(n.levels,high.u.bias=1000),
                     labels=comma_format())
   
   ##Change those labels into ranges
@@ -57,7 +54,7 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
                       ordered = TRUE)
   myval<-fpal(df$vcut)
   
-  df$`State`<-paste0(df$state,"= ",round(df$v,1))
+  df$`State`<-paste0(df$State,"= ",round(df$v,1))
   
   gg<-ggplot(df,aes(label=`State`))
   gg<-gg+geom_bar(aes(
@@ -105,7 +102,7 @@ map_gen<-function(v,geo_df,legend_label){
                   bottom.percent,na.rm=TRUE)
   
   mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels,high.u.bias=5),
+                    pretty_breaks(n.levels,high.u.bias=1000),
                     labels=comma_format())
   
   
@@ -176,3 +173,10 @@ map_gen<-function(v,geo_df,legend_label){
 
   
 } # End function
+
+
+## Pull text function
+pull_text<-function(var,df){
+  my_text<-df$description[df$var_title==var]
+  my_text
+}
