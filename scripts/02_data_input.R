@@ -32,7 +32,6 @@ save(gm_cb,file="gm_codebook.Rdata")
 ## Read in data file
 gm<-read_xlsx(paste0(ddir,"gifted_data_2.xlsx"))
 
-
 ##Select only relevant rows and columns
 gm%>%slice(-c(1,53:dim(gm)[1]))%>%select(-c(2:5,39:dim(gm)[2]))->gm
 
@@ -49,15 +48,23 @@ gm$`National Rank in Access to Identification`<-as.numeric(gm$`National Rank in 
 
 gm$stabbr<-gm$State
 
+## For every variable after access, replace MA,DC,VT,RI
+
+out_states<-c("RI", "MA", "VT", "DC")
+
+drop_function<-function(x){ifelse(gm$`State`%in%out_states,NA,x)}
+
+gm<-gm%>%mutate_at(vars(c(4:dim(gm)[2])),.funs=drop_function)
+
 save(gm,file="gm.Rdata")
 
 spdf <- usa_sf()
 
-spdf$stabbr<-spdf$iso_3166_2
+spdf$State<-spdf$iso_3166_2
 
 ## Join data and shapefile
 
-gm_states<-left_join(spdf,gm,by="stabbr")
+gm_states<-left_join(spdf,gm,by="State")
 
 save(gm_states,file="gm_states.Rdata")
 

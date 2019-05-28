@@ -9,6 +9,10 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   ## groupvar: grouping variable
   ## axis_label: x axis label
   
+  select_vars<-c(groupvar,var)
+  
+  df<-df%>%select_at(select_vars)%>%drop_na()
+  
   df$groupvar<-unlist(df[groupvar])
   
   df$v<-unlist(df[var])
@@ -16,18 +20,17 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   #Number of levels to cut by
   n.levels<-10
   
+  my_accuracy=.01
+  
   ## Cuts 
-  ## Using max makes bad ranges, use top percentile (set above as constant) instead. 
   
-  mymax<-quantile(df$v                
-                  ,top.percent,na.rm=TRUE)
+  mymax<-max(df$v,na.rm=-TRUE)
   
-  mymin<-quantile(unlist(df$v)               
-                  ,bottom.percent,na.rm=TRUE)
+  mymin<-min(df$v,na.rm=TRUE)
   
   mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels,high.u.bias=1000),
-                    labels=comma_format())
+                    pretty_breaks(n.levels),
+                    labels=comma_format(accuracy = my_accuracy))
   
   ##Change those labels into ranges
   i<-2:length(mylevels$labels)
@@ -39,7 +42,7 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   ##Take all the "v" data and create nice groups for it.
   
   ##Apply ranges as defined above and add to the existing data
-  df$vcut<-findInterval(unlist(df[var]),vec=mylevels$breaks)
+  df$vcut<-findInterval(unlist(df$v),vec=mylevels$breaks)
   
   df$vcut<-factor(df$vcut,
                   levels=(i-1),
@@ -54,14 +57,13 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
                       ordered = TRUE)
   myval<-fpal(df$vcut)
   
-  df$`State`<-paste0(df$State,"= ",round(df$v,1))
-  
-  gg<-ggplot(df,aes(label=`State`))
+  gg<-ggplot(df,aes(text=paste0(df$State,"= ",round(df$v,2))))
   gg<-gg+geom_bar(aes(
     x=fct_reorder(.f=as_factor(groupvar),
                   .x=v),
     y=v,
     fill=vcut),
+    width=.75,
     stat="identity")
   gg<-gg+scale_fill_manual(values =pal)
   gg<-gg+coord_flip()
@@ -69,42 +71,40 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   gg<-gg+theme_minimal()
   gg<-gg+theme(axis.text.y=element_text(size=7,angle=15))
   gg<-gg+theme(legend.position="none")
-  outplot<-ggplotly(gg,tooltip="label")
+  outplot<-ggplotly(gg,tooltip="text")
   outplot
 }
 
 
 ## Mapping Function
 
-map_gen<-function(v,geo_df,legend_label){
+map_gen<-function(geo_df,var,legend_label){
   # This is a function to generate a map linked to plots 
   ## of data, it takes one argument "v" which specifies 
   ## the variable to use
   ## geo_df= geographic data frame
   ## legend_label: title of legend
   
-  geo_df$v<-geo_df[v][[1]]
+  select_vars<-c("State",var)
+  
+  geo_df<-geo_df%>%select_at(select_vars)
+  
+  geo_df$v<-geo_df[var][[1]]
   ## Top percent used to set range
-  
-  top.percent<-1
-  bottom.percent<-0
-  
   #Number of levels to cut by
   n.levels<-10
   
+  my_accuracy=.01
+  
   ## Cuts 
-  ## Using max makes bad ranges, use top percentile (set above as constant) instead. 
   
-  mymax<-quantile(geo_df$v,
-                  top.percent,na.rm=TRUE)
+  mymax<-max(geo_df$v,na.rm=-TRUE)
   
-  mymin<-quantile(geo_df$v,
-                  bottom.percent,na.rm=TRUE)
+  mymin<-min(geo_df$v,na.rm=TRUE)
   
   mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels,high.u.bias=1000),
-                    labels=comma_format())
-  
+                    pretty_breaks(n.levels),
+                    labels=comma_format(accuracy = my_accuracy))
   
   ##Change those labels into ranges
   i<-2:length(mylevels$labels)
@@ -116,30 +116,26 @@ map_gen<-function(v,geo_df,legend_label){
   ##Take all the "v" data and create nice groups for it.
   
   ##Apply ranges as defined above and add to the existing data
-  geo_df$vcut<-findInterval(geo_df$v,vec=mylevels$breaks)
+  geo_df$vcut<-findInterval(unlist(geo_df$v),vec=mylevels$breaks)
   
   geo_df$vcut<-factor(geo_df$vcut,
-                      levels=(i-1),
-                      labels=mynicelevels,
-                      ordered=TRUE)
-  
+                  levels=(i-1),
+                  labels=mynicelevels,
+                  ordered=TRUE)
   
   ## Create palette, might want to match with plot above    
-  pal<- (brewer.pal(length(mylevels$breaks), 'RdYlGn'))
+  pal<- (brewer.pal(n.levels, 'RdYlGn'))
   
   fpal <- colorFactor(pal = pal,
                       domain = geo_df$vcut,
                       ordered = TRUE)
   
-  
   ## Create a label for each state that links to
   ## external plots
   state_pop<-paste0(
-    geo_df$name,"</a><b>",
-    '<br/> ',
-    v,
+    geo_df$`State`,
     ": ",
-    prettyNum((geo_df$v),digits=1)
+    prettyNum((geo_df$v),digits=4)
     )
   
   ## Set line weights
