@@ -1,5 +1,5 @@
 ## Functions for gifted mapping app
-
+specify_decimal <- function(x, k) trimws(format(round(x, k), nsmall=k))
 
 gg_state_plot<-function(df,var,groupvar,axis_label){
   ## gg state_plot:
@@ -29,7 +29,7 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   mymin<-min(df$v,na.rm=TRUE)
   
   mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels),
+                    pretty_breaks(n.levels,high.u.bias=2),
                     labels=comma_format(accuracy = my_accuracy))
   
   ##Change those labels into ranges
@@ -57,7 +57,7 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
                       ordered = TRUE)
   myval<-fpal(df$vcut)
   
-  gg<-ggplot(df,aes(text=paste0(df$State,"= ",round(df$v,2))))
+  gg<-ggplot(df,aes(text=paste0(df$State,"= ",specify_decimal(df$v,2))))
   gg<-gg+geom_bar(aes(
     x=fct_reorder(.f=as_factor(groupvar),
                   .x=v),
@@ -103,7 +103,7 @@ map_gen<-function(geo_df,var,legend_label){
   mymin<-min(geo_df$v,na.rm=TRUE)
   
   mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels),
+                    pretty_breaks(n.levels,high.u.bias=2),
                     labels=comma_format(accuracy = my_accuracy))
   
   ##Change those labels into ranges
@@ -135,7 +135,9 @@ map_gen<-function(geo_df,var,legend_label){
   state_pop<-paste0(
     geo_df$`State`,
     ": ",
-    prettyNum((geo_df$v),digits=4)
+    specify_decimal(geo_df$v,2),
+    " ",
+    legend_label
     )
   
   ## Set line weights

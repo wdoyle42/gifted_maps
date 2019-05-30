@@ -1,28 +1,23 @@
 ################################################################################
 # Load in data 
 # <Init> 2/1/2019
+# <Rev> 5/30/2019
 # <AU> Doyle
 # Load in gifted and mapping data, write to Rdata for easy access from app
 ################################################################################
-
-library(shiny)
-library(plotly)
-library(readxl)
-library(usmap)
-library(leaflet)
-library(sp)
-library(sf)
-library(tigris)
-library(albersusa)
-library(htmlwidgets)
-library(scales)
-library(RColorBrewer)
 library(tidyverse)
 library(readxl)
-
+library(noncensus)
+library(albersusa)
 
 ddir<-"../data/"
 
+## Get state data for names
+data(states)
+
+states<-states%>%select(state,name)%>%slice(1:51)
+
+states$stabbr<-states$state
 
 ## Read in codebook
 gm_cb<-read_xlsx(paste0(ddir,"codebook.xlsx"))
@@ -33,7 +28,7 @@ save(gm_cb,file="gm_codebook.Rdata")
 gm<-read_xlsx(paste0(ddir,"gifted_data_2.xlsx"))
 
 ##Select only relevant rows and columns
-gm%>%slice(-c(1,53:dim(gm)[1]))%>%select(-c(2:5,39:dim(gm)[2]))->gm
+gm%>%slice(-c(1,53:dim(gm)[1]))%>%select(-c(2:5,7,39:dim(gm)[2]))->gm
 
 ## Name variables with descriptive labels
 names(gm)<-gm_cb$var_title
@@ -44,10 +39,6 @@ mult_100<-function(x){x*100}
 
 gm%>%mutate_at(.vars=pct_vars,.funs=mult_100)->gm
 
-gm$`National Rank in Access to Identification`<-as.numeric(gm$`National Rank in Access to Identification`)
-
-gm$stabbr<-gm$State
-
 ## For every variable after access, replace MA,DC,VT,RI
 
 out_states<-c("RI", "MA", "VT", "DC")
@@ -56,15 +47,27 @@ drop_function<-function(x){ifelse(gm$`State`%in%out_states,NA,x)}
 
 gm<-gm%>%mutate_at(vars(c(4:dim(gm)[2])),.funs=drop_function)
 
+gm$stabbr<-gm$State
+
+gm<-left_join(gm,states,by="stabbr")
+
+gm$State<-gm$name
+
+gm<-gm%>%select(-stabbr,-state,-name)
+
 save(gm,file="gm.Rdata")
 
 spdf <- usa_sf()
 
-spdf$State<-spdf$iso_3166_2
+spdf$State<-spdf$name
 
 ## Join data and shapefile
 
 gm_states<-left_join(spdf,gm,by="State")
+
+
+gm_states<-gm_states%>%select(-stabbr,-state,-name)
+
 
 save(gm_states,file="gm_states.Rdata")
 

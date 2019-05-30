@@ -1,14 +1,16 @@
-library(ggplot2)
+################################################################################
+# Shiny App to Display Data
+# <Init> 2/1/2019
+# <Rev> 5/30/2019
+# <AU> Doyle
+# # Reactive display: for each variable provide description map and barplot
+################################################################################
+
 library(shiny)
 library(plotly)
-library(readxl)
-library(usmap)
 library(leaflet)
-library(sp)
 library(sf)
-library(tigris)
 library(albersusa)
-library(htmlwidgets)
 library(scales)
 library(RColorBrewer)
 library(tidyverse)
@@ -33,17 +35,17 @@ shinyApp(
     
     fluidRow(
       ## First Section: Variable Selection and Description, 
-      column(2,
+      column(2, offset = 1,
              fluidRow(
                ## Variable Selection Widget 
                varSelectInput("variable", "Choose a Variable:", gm_sub, selected = "access"),
                ## Reactive Text based on variables
-               textOutput("description")
+               htmlOutput("description")
              )
       ), # Close First Section
       
       ## Second Section: Plot Output
-      column(10,
+      column(9,
              ## Barplot
              fluidRow(
                plotlyOutput("barplot",height = 500)
