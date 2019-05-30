@@ -16,10 +16,10 @@ library(RColorBrewer)
 library(tidyverse)
 
 
-source("./01_gifted_functions.r")
+source("01_gifted_functions.R")
 
 load("gm.Rdata")
-load("gm_States.Rdata")
+load("gm_states.Rdata")
 load("gm_codebook.Rdata")
 
 ## Drop state from list of variables
