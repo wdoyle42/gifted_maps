@@ -17,6 +17,11 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   
   df$v<-unlist(df[var])
   
+  ## Percent=% in legend label
+  
+
+axis_label<-str_replace(axis_label,"Percent","%")
+    
   #Number of levels to cut by
   n.levels<-10
   
@@ -84,6 +89,10 @@ map_gen<-function(geo_df,var,legend_label){
   ## the variable to use
   ## geo_df= geographic data frame
   ## legend_label: title of legend
+  
+  
+legend_label<-str_replace(legend_label,"Percent","%")
+  
   
   select_vars<-c("State",var)
   
@@ -153,7 +162,11 @@ map_gen<-function(geo_df,var,legend_label){
   
   ## Create leaflet map
   out_map<-leaflet(data = geo_df,
-                   options = leafletOptions(crs = epsg2163)) %>% 
+                   options = leafletOptions(crs = epsg2163,
+                   minZoom=3
+                   ##maxZoom=3
+                   #dragging=FALSE
+                   )) %>% 
     addPolygons(
       color = 'black',
       weight = myweight,
@@ -166,7 +179,8 @@ map_gen<-function(geo_df,var,legend_label){
               pal = fpal,
               values = geo_df$vcut
     )%>%
-    setView(lng = -98.35, lat = 39.50, zoom = 3)
+    setView(lng = -98.35, lat = 39.50,zoom=3)%>%
+    setMaxBounds(lng1=-125,lng2=-40,lat1=10, lat2=60)
   
 
   

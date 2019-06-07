@@ -65,9 +65,5 @@ spdf$State<-spdf$name
 
 gm_states<-left_join(spdf,gm,by="State")
 
-
-gm_states<-gm_states%>%select(-stabbr,-state,-name)
-
-
 save(gm_states,file="gm_states.Rdata")
 

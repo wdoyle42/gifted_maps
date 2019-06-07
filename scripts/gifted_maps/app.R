@@ -16,7 +16,7 @@ library(RColorBrewer)
 library(tidyverse)
 
 
-source("01_gifted_functions.R")
+source("./01_gifted_functions.R")
 
 load("gm.Rdata")
 load("gm_states.Rdata")
