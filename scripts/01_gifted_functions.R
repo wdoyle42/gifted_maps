@@ -23,7 +23,7 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
 axis_label<-str_replace(axis_label,"Percent","%")
     
   #Number of levels to cut by
-  n.levels<-10
+  n.levels<-9
   
   my_accuracy=.01
   
@@ -36,6 +36,19 @@ axis_label<-str_replace(axis_label,"Percent","%")
   mylevels<-cbreaks(range=c(mymin,mymax),
                     pretty_breaks(n.levels,high.u.bias=2),
                     labels=comma_format(accuracy = my_accuracy))
+  
+  ## Exception handling, for when there are too many breaks  
+  
+  if (length(mylevels$breaks)>11){
+    
+    n.levels<-7
+    
+    mylevels<-cbreaks(range=c(mymin,mymax),
+                      pretty_breaks(n.levels,high.u.bias=2),
+                      labels=comma_format(accuracy = my_accuracy))
+  }
+  
+  
   
   ##Change those labels into ranges
   i<-2:length(mylevels$labels)
@@ -54,12 +67,12 @@ axis_label<-str_replace(axis_label,"Percent","%")
                   labels=mynicelevels,
                   ordered=TRUE)
   
-  ## Create palette, might want to match with plot above    
-  pal<- (brewer.pal(length(mylevels$breaks), 'RdYlGn'))
+  pal<- brewer.pal(length(mylevels$breaks), 'RdYlGn')
   
   fpal <- colorFactor(pal = pal,
                       domain = df$vcut,
                       ordered = TRUE)
+  
   myval<-fpal(df$vcut)
   
   gg<-ggplot(df,aes(text=paste0(df$State,"= ",specify_decimal(df$v,2))))
@@ -101,7 +114,7 @@ legend_label<-str_replace(legend_label,"Percent","%")
   geo_df$v<-geo_df[var][[1]]
   ## Top percent used to set range
   #Number of levels to cut by
-  n.levels<-10
+  n.levels<-9
   
   my_accuracy=.01
   
@@ -114,6 +127,19 @@ legend_label<-str_replace(legend_label,"Percent","%")
   mylevels<-cbreaks(range=c(mymin,mymax),
                     pretty_breaks(n.levels,high.u.bias=2),
                     labels=comma_format(accuracy = my_accuracy))
+
+  ## Exception handling, for when there are too many breaks  
+  
+  if (length(mylevels$breaks)>11){
+    
+    n.levels<-7
+    
+    mylevels<-cbreaks(range=c(mymin,mymax),
+                      pretty_breaks(n.levels,high.u.bias=2),
+                      labels=comma_format(accuracy = my_accuracy))
+    
+  }
+  
   
   ##Change those labels into ranges
   i<-2:length(mylevels$labels)
@@ -133,7 +159,8 @@ legend_label<-str_replace(legend_label,"Percent","%")
                   ordered=TRUE)
   
   ## Create palette, might want to match with plot above    
-  pal<- (brewer.pal(n.levels, 'RdYlGn'))
+  
+  pal<- brewer.pal(length(mylevels$breaks), 'RdYlGn')
   
   fpal <- colorFactor(pal = pal,
                       domain = geo_df$vcut,

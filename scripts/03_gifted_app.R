@@ -67,10 +67,9 @@ shinyApp(
     
     helpText("                                        ",
              "                                        ",
-             "Copyright, Citation, Contact information here
-           Notes: Rhode Island, Massachussetts, Vermont and DC have been dropped from all variables
-                      except Access to Identification and Percent Identified as Gifted/Talented
-           as they have fewer than 5% of their students having access to identification.")
+            "Notes: Rhode Island, Massachusetts, Vermont and DC have been dropped from all variables
+            except Access to Identification and Percent Identified as Gifted/Talented
+            as they have fewer than 5% of their students having access to identification.")
   ),
     
  # End fluidpage
