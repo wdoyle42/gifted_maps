@@ -33,10 +33,11 @@ gm%>%slice(-c(1,53:dim(gm)[1]))%>%select(-c(2:5,7,39:dim(gm)[2]))->gm
 ## Name variables with descriptive labels
 names(gm)<-gm_cb$var_title
 
-pct_vars<-names(gm)[c(2,4:6)]
+pct_vars<-names(gm)[c(2:5)]
 
 mult_100<-function(x){x*100}
 
+## Mutate pct variables
 gm%>%mutate_at(.vars=pct_vars,.funs=mult_100)->gm
 
 ## For every variable after access, replace MA,DC,VT,RI
