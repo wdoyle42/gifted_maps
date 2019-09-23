@@ -1,53 +1,96 @@
+################################################################################
 ## Functions for gifted mapping app
+## Key functions for plotting and mapping state-level data
+## AU: Will Doyle
+## Init: May, 2019
+## Rev: Sep, 2019
+################################################################################
+
+################################################################################
+## Global Parameters
+################################################################################
+
+#Decimal Point Accuracy
+my_accuracy=.01
+
+## Breaks for percents
+break_vector_percents<-c(seq(0,100,by=10))
+
+## breaks for ratios
+break_vector_ratios<-c(seq(0,1,by=.1),
+                       seq(1,5,by=.5))
+
+## Hex codes as specified for percent variables
+percent_hex_codes <- c(
+  "#f21811",
+  "#f86631",
+  "#fc955b",
+  "#ffbc8c",
+  "#fc8d0a",
+  "#f1aa2c",
+  "#e7c250",
+  "#e0d876",
+  "#95c045",
+  "#77b839"
+)
+
+
+## Hex codes as specified for ratios
+ratio_hex_codes <- c(
+  "#f21811",
+  "#ffbc8c",
+  "#f86631",
+  "#fc955b",
+  "#ffa456",
+  "#fc8d0a",
+  "#16a82b", 
+  "#00c281", 
+  "#00cda7", 
+  "#00d8c9", 
+  "#00e1e6", 
+  "#00eaff", 
+  "#00cdfc", 
+  "#00aff7", 
+  "#0090ee", 
+  "#0070dd",
+  "#004dc4",
+  "#3422a1",
+  "#6237af", 
+  "#864fbe"
+)
+
+################################################################################
+# Specify Decimal Function
+################################################################################
+
+## @param x= variable
+## @param k= number of decimal points
 specify_decimal <- function(x, k) trimws(format(round(x, k), nsmall=k))
 
-gg_state_plot<-function(df,var,groupvar,axis_label){
-  ## gg state_plot:
-  ## takes options
-  ## df: data
-  ## var: variable
-  ## groupvar: grouping variable
-  ## axis_label: x axis label
-  
-  select_vars<-c(groupvar,var)
-  
-  df<-df%>%select_at(select_vars)%>%drop_na()
-  
-  df$groupvar<-unlist(df[groupvar])
-  
-  df$v<-unlist(df[var])
-  
-  ## Percent=% in legend label
-  
+################################################################################
+## Factor Levels function
+################################################################################
 
-axis_label<-str_replace(axis_label,"Percent","%")
-    
-  #Number of levels to cut by
-  n.levels<-9
+## @ param df= data frame
+## @ param var= specified variable
+## returns factor variable with nice looking levels for either percent or ratio
+## variabls
+
+factor_level<-function(df, var){
+  ## move var into $v for convenience
+  df$v<-unlist(df[var][[1]])
   
-  my_accuracy=.01
+  ## Determine whether ratio or percent
   
-  ## Cuts 
-  
-  mymax<-max(df$v,na.rm=-TRUE)
-  
-  mymin<-min(df$v,na.rm=TRUE)
-  
-  mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels,high.u.bias=2),
-                    labels=comma_format(accuracy = my_accuracy))
-  
-  ## Exception handling, for when there are too many breaks  
-  
-  if (length(mylevels$breaks)>11){
-    
-    n.levels<-7
-    
-    mylevels<-cbreaks(range=c(mymin,mymax),
-                      pretty_breaks(n.levels,high.u.bias=2),
+  if(grepl("Percent",var)){
+    mylevels<-cbreaks(range=c(0,100),
+                      breaks=break_vector_percents,
+                      labels=comma_format(accuracy = my_accuracy))
+  } else{
+    mylevels<-cbreaks(range=c(0,5),
+                      breaks=break_vector_ratios,
                       labels=comma_format(accuracy = my_accuracy))
   }
-  
   
   
   ##Change those labels into ranges
@@ -62,18 +105,95 @@ axis_label<-str_replace(axis_label,"Percent","%")
   ##Apply ranges as defined above and add to the existing data
   df$vcut<-findInterval(unlist(df$v),vec=mylevels$breaks)
   
+  ## Turn result into ordered factor
   df$vcut<-factor(df$vcut,
                   levels=(i-1),
                   labels=mynicelevels,
                   ordered=TRUE)
+  df$vcut
+} ## End level factor function
   
-  pal<- brewer.pal(length(mylevels$breaks), 'RdYlGn')
+################################################################################
+## Color Mapping function
+################################################################################
+
+color_mapping<-function(df,var){
+
+  ## This is a function to map one of two sets
+  ## of hex codes to variable levels,
+  ## with one set of levels for ratio variables
+  ## and another set of levels for percent variables
   
-  fpal <- colorFactor(pal = pal,
+  
+  df$v<-unlist(df[var][[1]])
+  
+  if(grepl("Percent",var)){
+    mylevels<-cbreaks(range=c(0,100),
+                      breaks=break_vector_percents,
+                      labels=comma_format(accuracy = my_accuracy))
+  } else{
+    mylevels<-cbreaks(range=c(0,5),
+                      breaks=break_vector_ratios,
+                      labels=comma_format(accuracy = my_accuracy))
+  }
+  
+## Apply factor level to df  
+ df$vcut<-factor_level(df,var)
+   
+ ## Color mapping function for leaflet
+ ## Apply different functions to ratios or percents
+  ## Ratios only go to 5      
+  if(grepl("Percent",var)){
+    
+ fpal <- colorFactor(pal = percent_hex_codes,
                       domain = df$vcut,
                       ordered = TRUE)
+  } else {
+    fpal <- colorFactor(pal = ratio_hex_codes,
+                        domain = df$vcut,
+                        ordered = TRUE)
+  }
   
-  myval<-fpal(df$vcut)
+ ## Color mapping function for ggplot
+  ## All percent variables are named percent
+  if(grepl("Percent",var)){
+    bar_colors<-setNames(percent_hex_codes,levels(df$vcut))
+  } else {
+    bar_colors<-setNames(ratio_hex_codes,levels(df$vcut))
+  }
+ 
+  list(fpal,df$vcut,bar_colors)
+  
+} # End color mapping function
+
+################################################################################
+## Bar Plot Function
+################################################################################
+
+gg_state_plot<-function(df,var,groupvar,axis_label){
+  ## gg state_plot:
+  ## takes options
+  ## df: data frame name
+  ## var: variable name, string variable
+  ## groupvar: grouping variable, string variable
+  ## axis_label: x axis label, string variable
+  
+  select_vars<-c(groupvar,var)
+  
+  df<-df%>%select_at(select_vars)%>%drop_na()
+  
+  df$groupvar<-unlist(df[groupvar])
+  
+  df$v<-unlist(df[var])
+  
+  ## Color mapping: cuts
+  df$vcut<-unlist(color_mapping(df,var)[[2]])
+  
+  ## Color mapping: values
+  bar_colors<-color_mapping(df,var)[[3]]
+  
+  ## Percent=% in legend label
+  axis_label<-str_replace(axis_label,"Percent","%")
   
   gg<-ggplot(df,aes(text=paste0(df$State,"= ",specify_decimal(df$v,2))))
   gg<-gg+geom_bar(aes(
@@ -83,7 +203,7 @@ axis_label<-str_replace(axis_label,"Percent","%")
     fill=vcut),
     width=.75,
     stat="identity")
-  gg<-gg+scale_fill_manual(values =pal)
+  gg<-gg+scale_fill_manual(values=bar_colors)
   gg<-gg+coord_flip()
   gg<-gg+xlab("")+ylab(axis_label)
   gg<-gg+theme_minimal()
@@ -91,10 +211,11 @@ axis_label<-str_replace(axis_label,"Percent","%")
   gg<-gg+theme(legend.position="none")
   outplot<-ggplotly(gg,tooltip="text")
   outplot
-}
+} # End State Plot Function
 
-
+################################################################################
 ## Mapping Function
+################################################################################
 
 map_gen<-function(geo_df,var,legend_label){
   # This is a function to generate a map linked to plots 
@@ -106,65 +227,15 @@ map_gen<-function(geo_df,var,legend_label){
   
 legend_label<-str_replace(legend_label,"Percent","%")
   
-  
   select_vars<-c("State",var)
   
   geo_df<-geo_df%>%select_at(select_vars)
   
   geo_df$v<-geo_df[var][[1]]
-  ## Top percent used to set range
-  #Number of levels to cut by
-  n.levels<-9
   
-  my_accuracy=.01
+  fpal<-color_mapping(geo_df,var)[[1]]
   
-  ## Cuts 
-  
-  mymax<-max(geo_df$v,na.rm=-TRUE)
-  
-  mymin<-min(geo_df$v,na.rm=TRUE)
-  
-  mylevels<-cbreaks(range=c(mymin,mymax),
-                    pretty_breaks(n.levels,high.u.bias=2),
-                    labels=comma_format(accuracy = my_accuracy))
-
-  ## Exception handling, for when there are too many breaks  
-  
-  if (length(mylevels$breaks)>11){
-    
-    n.levels<-7
-    
-    mylevels<-cbreaks(range=c(mymin,mymax),
-                      pretty_breaks(n.levels,high.u.bias=2),
-                      labels=comma_format(accuracy = my_accuracy))
-    
-  }
-  
-  
-  ##Change those labels into ranges
-  i<-2:length(mylevels$labels)
-  
-  mynicelevels<-NULL
-  
-  mynicelevels[i-1]<-paste0(mylevels$labels[i-1],"-",mylevels$labels[i])
-  
-  ##Take all the "v" data and create nice groups for it.
-  
-  ##Apply ranges as defined above and add to the existing data
-  geo_df$vcut<-findInterval(unlist(geo_df$v),vec=mylevels$breaks)
-  
-  geo_df$vcut<-factor(geo_df$vcut,
-                  levels=(i-1),
-                  labels=mynicelevels,
-                  ordered=TRUE)
-  
-  ## Create palette, might want to match with plot above    
-  
-  pal<- brewer.pal(length(mylevels$breaks), 'RdYlGn')
-  
-  fpal <- colorFactor(pal = pal,
-                      domain = geo_df$vcut,
-                      ordered = TRUE)
+  geo_df$vcut<-color_mapping(geo_df,var)[[2]]
   
   ## Create a label for each state that links to
   ## external plots
@@ -208,14 +279,19 @@ legend_label<-str_replace(legend_label,"Percent","%")
     )%>%
     setView(lng = -98.35, lat = 39.50,zoom=3)%>%
     setMaxBounds(lng1=-125,lng2=-40,lat1=10, lat2=60)
-  
+  out_map
 
   
-} # End function
+} # End Mapping function
 
-
+################################################################################
 ## Pull text function
+################################################################################
+
+## Used to grab codebook information and present it
 pull_text<-function(var,df){
   my_text<-df$description[df$var_title==var]
   my_text
-}
+} # End function
+
+
