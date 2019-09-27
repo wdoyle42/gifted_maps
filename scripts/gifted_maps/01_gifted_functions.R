@@ -4,7 +4,7 @@
 ## AU: Will Doyle
 ## Init: May, 2019
 ## Rev: Sep, 2019
-################################################################################
+###############################################################################
 
 ################################################################################
 ## Global Parameters
@@ -15,6 +15,8 @@ my_accuracy=.01
 
 ## Breaks for percents
 break_vector_percents<-c(seq(0,100,by=10))
+
+break_vector_short_percents<-c(seq(0,30,by=5))
 
 ## breaks for ratios
 break_vector_ratios<-c(seq(0,1,by=.1),
@@ -29,6 +31,17 @@ percent_hex_codes <- c(
   "#fc8d0a",
   "#f1aa2c",
   "#e7c250",
+  "#e0d876",
+  "#95c045",
+  "#77b839"
+)
+
+## Hex codes as specified for percent variables
+short_percent_hex_codes <- c(
+  "#f21811",
+  "#fc955b",
+  "#fc8d0a",
+  "#f1aa2c",
   "#e0d876",
   "#95c045",
   "#77b839"
@@ -82,16 +95,20 @@ factor_level<-function(df, var){
   
   ## Determine whether ratio or percent
   
-  if(grepl("Percent",var)){
+  if(var=="Percent of Students with Access to GT Identification"){
     mylevels<-cbreaks(range=c(0,100),
                       breaks=break_vector_percents,
                       labels=comma_format(accuracy = my_accuracy))
-  } else{
+  } else  if(grepl("Percent",var)) {
+    mylevels<-cbreaks(range=c(0,31),
+                      breaks=break_vector_short_percents,
+                      labels=comma_format(accuracy = my_accuracy))
+  }  
+  else{
     mylevels<-cbreaks(range=c(0,5),
                       breaks=break_vector_ratios,
                       labels=comma_format(accuracy = my_accuracy))
   }
-  
   
   ##Change those labels into ranges
   i<-2:length(mylevels$labels)
@@ -117,52 +134,71 @@ factor_level<-function(df, var){
 ## Color Mapping function
 ################################################################################
 
-color_mapping<-function(df,var){
 
+color_mapping <- function(df, var) {
   ## This is a function to map one of two sets
   ## of hex codes to variable levels,
   ## with one set of levels for ratio variables
   ## and another set of levels for percent variables
   
+  df$v <- unlist(df[var][[1]])
   
-  df$v<-unlist(df[var][[1]])
+  ## Determine whether ratio or percent
   
-  if(grepl("Percent",var)){
-    mylevels<-cbreaks(range=c(0,100),
-                      breaks=break_vector_percents,
-                      labels=comma_format(accuracy = my_accuracy))
-  } else{
-    mylevels<-cbreaks(range=c(0,5),
-                      breaks=break_vector_ratios,
-                      labels=comma_format(accuracy = my_accuracy))
+  if (var == "Percent of Students with Access to GT Identification") {
+    mylevels <- cbreaks(
+      range = c(0, 100),
+      breaks = break_vector_percents,
+      labels = comma_format(accuracy = my_accuracy)
+    )
+  }  else  if (grepl("Percent", var)) {
+    mylevels <- cbreaks(
+      range = c(0, 31),
+      breaks = break_vector_short_percents,
+      labels = comma_format(accuracy = my_accuracy)
+    )
+  }
+  else{
+    mylevels <- cbreaks(
+      range = c(0, 5),
+      breaks = break_vector_ratios,
+      labels = comma_format(accuracy = my_accuracy)
+    )
   }
   
-## Apply factor level to df  
- df$vcut<-factor_level(df,var)
-   
- ## Color mapping function for leaflet
- ## Apply different functions to ratios or percents
-  ## Ratios only go to 5      
-  if(grepl("Percent",var)){
-    
- fpal <- colorFactor(pal = percent_hex_codes,
-                      domain = df$vcut,
-                      ordered = TRUE)
-  } else {
+  ## Apply factor level to df
+  df$vcut <- factor_level(df, var)
+  
+  ## Color mapping function for leaflet
+  ## Apply different functions to ratios or percents
+  ## Ratios only go to 5
+  if (var == "Percent of Students with Access to GT Identification") {
+    fpal <- colorFactor(pal = percent_hex_codes,
+                        domain = df$vcut,
+                        ordered = TRUE)
+  }  else  if (grepl("Percent", var)) {
+    fpal <- colorFactor(pal = short_percent_hex_codes,
+                        domain = df$vcut,
+                        ordered = TRUE)
+  }
+  else {
     fpal <- colorFactor(pal = ratio_hex_codes,
                         domain = df$vcut,
                         ordered = TRUE)
   }
   
- ## Color mapping function for ggplot
+  ## Color mapping function for ggplot
   ## All percent variables are named percent
-  if(grepl("Percent",var)){
-    bar_colors<-setNames(percent_hex_codes,levels(df$vcut))
-  } else {
-    bar_colors<-setNames(ratio_hex_codes,levels(df$vcut))
+  if (var == "Percent of Students with Access to GT Identification") {
+    bar_colors <- setNames(percent_hex_codes, levels(df$vcut))
+  } else  if (grepl("Percent", var)) {
+    bar_colors = setNames(short_percent_hex_codes, levels(df$vcut))
   }
- 
-  list(fpal,df$vcut,bar_colors)
+  else {
+    bar_colors <- setNames(ratio_hex_codes, levels(df$vcut))
+  }
+  
+  list(fpal, df$vcut, bar_colors)
   
 } # End color mapping function
 
@@ -261,10 +297,11 @@ legend_label<-str_replace(legend_label,"Percent","%")
   ## Create leaflet map
   out_map<-leaflet(data = geo_df,
                    options = leafletOptions(crs = epsg2163,
-                   minZoom=3
-                   ##maxZoom=3
-                   #dragging=FALSE
-                   )) %>% 
+                   minZoom=3,
+                   maxZoom=3,
+                   dragging=FALSE,
+                   zoomControl=FALSE
+                   ) )%>% 
     addPolygons(
       color = 'black',
       weight = myweight,
@@ -293,5 +330,9 @@ pull_text<-function(var,df){
   my_text<-df$description[df$var_title==var]
   my_text
 } # End function
+
+
+
+
 
 

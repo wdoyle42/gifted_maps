@@ -46,14 +46,15 @@ shinyApp(
       
       ## Second Section: Plot Output
       column(9,
-             ## Barplot
-             fluidRow(
-               plotlyOutput("barplot",height = 500)
-             ),
              ## Map
              fluidRow(
                leafletOutput("map",height = 600)
+             ),
+             ## Barplot
+             fluidRow(
+               plotlyOutput("barplot",height = 500)
              )
+             
       )# Close Second Section
       
     ), # Close overall fluidrow
@@ -89,3 +90,4 @@ shinyApp(
       output$description<-renderText(pull_text(var=input$variable,df=gm_cb))
   }
 )
+

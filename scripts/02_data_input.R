@@ -7,6 +7,7 @@
 ################################################################################
 library(tidyverse)
 library(readxl)
+library(scales)
 library(noncensus)
 library(albersusa)
 
