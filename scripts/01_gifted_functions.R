@@ -310,7 +310,7 @@ legend_label<-str_replace(legend_label,"Percent","%")
       fillOpacity = 0.75,
       popup=state_pop)%>%
     addLegend('bottomright',
-              title=legend_label,
+              title=word_wrap(legend_label),
               pal = fpal,
               values = geo_df$vcut
     )%>%
@@ -321,7 +321,7 @@ legend_label<-str_replace(legend_label,"Percent","%")
   
 } # End Mapping function
 
-################################################################################
+
 ## Pull text function
 ################################################################################
 
@@ -332,7 +332,27 @@ pull_text<-function(var,df){
 } # End function
 
 
+################################################################################
+## Word wrap function
+################################################################################
 
 
-
+word_wrap <- function(x) {
+split_length<-5
+  
+    str_split(x, boundary("word")) %>%
+    unlist() ->
+    extract_words
+  
+  if (length(extract_words > split_length)) {
+    extract_words<-c(extract_words[1:split_length-1],
+           "\n", #What's html for newline?
+           extract_words[split_length:length(extract_words)])%>%
+      str_c(.,collapse=" ")
+  } else {
+    extract_words -> x
+  }
+  extract_words
+  }
+    
 
