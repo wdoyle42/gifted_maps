@@ -16,7 +16,7 @@ my_accuracy=.01
 ## Breaks for percents
 break_vector_percents<-c(seq(0,100,by=10))
 
-break_vector_short_percents<-c(seq(0,30,by=5))
+break_vector_short_percents<-c(seq(0,35,by=5))
 
 ## breaks for ratios
 break_vector_ratios<-c(seq(0,1,by=.1),
@@ -40,6 +40,7 @@ percent_hex_codes <- c(
 short_percent_hex_codes <- c(
   "#f21811",
   "#fc955b",
+  "#ffbc8c",
   "#fc8d0a",
   "#f1aa2c",
   "#e0d876",
@@ -261,7 +262,7 @@ map_gen<-function(geo_df,var,legend_label){
   ## legend_label: title of legend
   
   
-legend_label<-str_replace(legend_label,"Percent","%")
+#legend_label<-str_replace(legend_label,"Percent","%")
   
   select_vars<-c("State",var)
   
@@ -340,13 +341,18 @@ pull_text<-function(var,df){
 word_wrap <- function(x) {
 split_length<-5
   
-    str_split(x, boundary("word")) %>%
-    unlist() ->
-    extract_words
-  
   if (length(extract_words > split_length)) {
+    
+    ## Split into a vector of words
+    str_split(x, boundary("word")) %>%
+      unlist() ->
+      extract_words
+    
+    split_length<-floor(length(extract_words)/2)+
+      (floor(length(extract_words)/2) %% 2)
+    
     extract_words<-c(extract_words[1:split_length-1],
-           "\n", #What's html for newline?
+           "<br>", #html newline
            extract_words[split_length:length(extract_words)])%>%
       str_c(.,collapse=" ")
   } else {
