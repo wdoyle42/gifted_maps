@@ -14,37 +14,24 @@
 my_accuracy=.01
 
 ## Breaks for percents
-break_vector_percents<-c(seq(0,100,by=10))
+break_vector_percents<-c(0,60,90,100)
 
-break_vector_short_percents<-c(seq(0,35,by=5))
+break_vector_short_percents<-c(0,5,10,31)
 
 ## breaks for ratios
-break_vector_ratios<-c(seq(0,1,by=.1),
-                       seq(1,5,by=.5))
+break_vector_ratios<-c(0,.8,1,5)
 
 ## Hex codes as specified for percent variables
 percent_hex_codes <- c(
   "#f21811",
-  "#f86631",
-  "#fc955b",
-  "#ffbc8c",
-  "#fc8d0a",
-  "#f1aa2c",
-  "#e7c250",
   "#e0d876",
-  "#95c045",
   "#77b839"
 )
 
 ## Hex codes as specified for percent variables
 short_percent_hex_codes <- c(
   "#f21811",
-  "#fc955b",
-  "#ffbc8c",
-  "#fc8d0a",
-  "#f1aa2c",
   "#e0d876",
-  "#95c045",
   "#77b839"
 )
 
@@ -52,25 +39,8 @@ short_percent_hex_codes <- c(
 ## Hex codes as specified for ratios
 ratio_hex_codes <- c(
   "#f21811",
-  "#ffbc8c",
-  "#f86631",
-  "#fc955b",
-  "#ffa456",
-  "#fc8d0a",
-  "#16a82b", 
-  "#00c281", 
-  "#00cda7", 
-  "#00d8c9", 
-  "#00e1e6", 
-  "#00eaff", 
-  "#00cdfc", 
-  "#00aff7", 
-  "#0090ee", 
-  "#0070dd",
-  "#004dc4",
-  "#3422a1",
-  "#6237af", 
-  "#864fbe"
+  "#e0d876",
+  "#77b839"
 )
 
 ################################################################################
@@ -100,6 +70,7 @@ factor_level<-function(df, var){
     mylevels<-cbreaks(range=c(0,100),
                       breaks=break_vector_percents,
                       labels=comma_format(accuracy = my_accuracy))
+    
   } else  if(grepl("Percent",var)) {
     mylevels<-cbreaks(range=c(0,31),
                       breaks=break_vector_short_percents,
@@ -246,6 +217,8 @@ gg_state_plot<-function(df,var,groupvar,axis_label){
   gg<-gg+theme_minimal()
   gg<-gg+theme(axis.text.y=element_text(size=7,angle=15))
   gg<-gg+theme(legend.position="none")
+  gg<-gg+theme(panel.background = element_rect(fill = "transparent",colour = NA))
+  gg<-gg+theme(rect = element_rect(fill = "transparent"))
   outplot<-ggplotly(gg,tooltip="text")
   outplot
 } # End State Plot Function
@@ -340,6 +313,8 @@ pull_text<-function(var,df){
 
 word_wrap <- function(x) {
 split_length<-5
+
+extract_words<-word(x)
   
   if (length(extract_words > split_length)) {
     
