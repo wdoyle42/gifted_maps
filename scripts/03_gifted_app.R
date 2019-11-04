@@ -83,11 +83,7 @@ shinyApp(
         ),
         
         helpText(
-          "                                        ",
-          "                                        ",
-          "Notes: Rhode Island, Massachusetts, Vermont and DC have been dropped from all variables
-            except Access to Identification and Percent Identified as Gifted/Talented
-            as they have fewer than 5% of their students having access to identification."
+          HTML(' <a href="https://www.dropbox.com/sh/8zs94wxcd2cwi1r/AACDZiMMtxq53rqdJtNsrW9Ia?dl=0">Please click here for links to report cards for all 50 states.</a> ')
         )
       ) # Close tabset
     ) # Close navbar

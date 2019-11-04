@@ -5,8 +5,8 @@ account: wdoyle42
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 722018
-bundleId: 2138596
+bundleId: 2563450
 url: https://wdoyle42.shinyapps.io/gifted_maps/
-when: 1559937195.29542
+when: 1572889878.3713
 asMultiple: FALSE
 asStatic: FALSE

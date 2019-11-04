@@ -69,3 +69,4 @@ gm_states<-left_join(spdf,gm,by="State")
 
 save(gm_states,file="gm_states.Rdata")
 
+## Text for About Page
