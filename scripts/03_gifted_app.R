@@ -21,7 +21,7 @@ source("./01_gifted_functions.R")
 load("gm.Rdata")
 load("gm_states.Rdata")
 load("gm_codebook.Rdata")
-
+load("page_links.Rdata")
 ## Drop state from list of variables
 gm_sub<-gm%>%select(-1)
 
@@ -30,7 +30,6 @@ shinyApp(
   ui = fluidPage(
     theme = shinytheme("slate"),
     
-        
     navbarPage("Students with Gifts and Talents Across the United States: Access, Equity, and Missing Youth",
       
       tabPanel(
@@ -44,8 +43,9 @@ shinyApp(
                  ## Reactive Text based on variables
                  htmlOutput("description")),
                fluidRow(
-                 img(src='vu06br.jpg', align = "bottom",height=150,width=150),
-                 img(src='Purdue-Sig-Black-Gold-rgb.png', align = "bottom",height=150,width=150)
+                 img(src='Purdue-Sig-Black-Gold-rgb.png', align = "bottom",height=150,width=140),
+                 HTML("<br/><br/><br/>"),
+                 img(src='vu06br.jpg', align = "bottom",height=150,width=140)
                )),
         # Close First Section
         
@@ -83,7 +83,8 @@ shinyApp(
         ),
         
         helpText(
-          HTML(' <a href="https://www.dropbox.com/sh/8zs94wxcd2cwi1r/AACDZiMMtxq53rqdJtNsrW9Ia?dl=0">Please click here for links to report cards for all 50 states.</a> ')
+          HTML('Below, please find links to report cards for the nation, states and the District of Columbia  <br/> <br/>'),
+          HTML(page_links)
         )
       ) # Close tabset
     ) # Close navbar

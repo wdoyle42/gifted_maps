@@ -70,3 +70,25 @@ gm_states<-left_join(spdf,gm,by="State")
 save(gm_states,file="gm_states.Rdata")
 
 ## Text for About Page
+
+links<-read_csv(paste0(ddir,"rc_links.csv"))
+names(links)<-c("state","link")
+
+
+links<-left_join(links,states,by="state")
+
+links$name[1]<-"Nation"
+
+page_links<-paste0(
+  ' <a href="',
+  links$link,
+  '"target="_blank"',
+  '>',
+  "Report Card for ",
+  links$name,
+  '</a>',
+  '<br/>',
+  '<br/>'
+)
+
+save(page_links,file="page_links.Rdata")
